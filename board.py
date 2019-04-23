@@ -1,26 +1,25 @@
-from board.tile import Tile
-from pieces.piece_null import NullPiece
-from pieces.bishop import Bishop
-from pieces.blind_tiger import BlindTiger
-from pieces.copper_general import CopperGeneral
-from pieces.dragon_horse import DragonHorse
-from pieces.dragon_king import DragonKing
-from pieces.drunk_elephant import DrunkElephant
-from pieces.ferocious_leopard import FerociousLeopard
-from pieces.free_king import FreeKing
-from pieces.go_between import GoBetween
-from pieces.gold_general import GoldGeneral
-from pieces.king import King
-from pieces.kylin import Kylin
-from pieces.lance import Lance
-from pieces.lion import Lion
-from pieces.pawn import Pawn
-from pieces.phoenix import Phoenix
-from pieces.reverse_chariot import ReverseChariot
-from pieces.rook import Rook
-from pieces.side_mover import SideMover
-from pieces.silver_general import SilverGeneral
-from pieces.vertical_mover import VerticalMover
+from pieces import NullPiece
+from pieces import Bishop
+from pieces import BlindTiger
+from pieces import CopperGeneral
+from pieces import DragonHorse
+from pieces import DragonKing
+from pieces import DrunkElephant
+from pieces import FerociousLeopard
+from pieces import FreeKing
+from pieces import GoBetween
+from pieces import GoldGeneral
+from pieces import King
+from pieces import Kylin
+from pieces import Lance
+from pieces import Lion
+from pieces import Pawn
+from pieces import Phoenix
+from pieces import ReverseChariot
+from pieces import Rook
+from pieces import SideMover
+from pieces import SilverGeneral
+from pieces import VerticalMover
 
 
 class Board:
@@ -137,3 +136,17 @@ class Board:
             if count == 12:
                 print('|', end='\n')
                 count = 0
+
+class Tile:
+
+    piece_on_tile = None
+    tile_coodinate = None
+
+    def __init__(self, coordinate, piece):
+        self.tile_coodinate = coordinate
+        self.piece_on_tile = piece
+
+class Move:
+
+    def __init__(self):
+        pass

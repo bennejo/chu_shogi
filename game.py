@@ -1,5 +1,5 @@
 import pygame
-from board.game_board import Board
+from board import Board
 
 pygame.init()
 game_display = pygame.display.set_mode((1200, 1200))
