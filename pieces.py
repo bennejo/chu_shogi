@@ -50,7 +50,7 @@ b_img_paths = [b_b, b_bt, b_c, b_de, b_dh, b_dk, b_fk, b_fl, b_g, b_gb, b_k, b_k
 w_img_paths = [w_b, w_bt, w_c, w_de, w_dh, w_dk, w_fk, w_fl, w_g, w_gb, w_k, w_ky, w_l, w_ln, w_p, w_ph, w_r, w_rc, w_s, w_sm, w_vm]
 
 b_imgs = []
-w imgs = []
+w_imgs = []
 
 for img in b_img_paths:
     b_imgs.append(pygame.transform.scale(img, (50,50)))
