@@ -21,6 +21,7 @@ from pieces import SideMover
 from pieces import SilverGeneral
 from pieces import VerticalMover
 
+import pygame as pg
 
 class Board:
 
@@ -136,6 +137,9 @@ class Board:
             if count == 12:
                 print('|', end='\n')
                 count = 0
+
+    def display_board(self, win):
+        pass
 
 class Tile:
 

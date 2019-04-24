@@ -1,6 +1,7 @@
 import pygame as pg
 import os
 from board import Board
+from client import join_game
 
 pg.init()
 
@@ -67,12 +68,23 @@ def main():
         # Blit the input_box rect.
         pg.draw.rect(win, color, input_box, 2)
 
-        pg.display.flip()
+        pg.display.update()
         clock.tick(30)
+
+    # log into server with username
+    login_result = join_game(username)
+
+    if login_result[0:5] == b'ERROR':
+        # TODO: display error message and wait some few seconds
+        print(login_result)
+        quit_game = True
+        quit()
+        pg.quit()
 
     while not quit_game:
 
         win.blit(board, (0, 0))
+        chu_shogi_board.display_board(win)
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -80,8 +92,8 @@ def main():
                 quit()
                 pg.quit()
 
-            pg.display.update()
-            clock.tick(60)
+        pg.display.update()
+        clock.tick(60)
 
 width = 1000
 height = 1000
