@@ -5,7 +5,7 @@ from board import Board
 pygame.init()
 
 board = pygame.transform.scale(pygame.image.load(os.path.join("img","board.png")), (1000, 1000))
-
+rect = (0,0,1000,1000)
 
 
 clock = pygame.time.Clock()
@@ -17,7 +17,20 @@ def redraw_gameWindow(win, color):
     pygame.display.update()
 
 def click(pos):
-    pass
+    """
+    :return: pos (x, y) in range 0-11 0-11
+    """
+    x = pos[0]
+    y = pos[1]
+    if rect[0] < x < rect[0] + rect[2]:
+        if rect[1] < y < rect[1] + rect[3]:
+            divX = x - rect[0]
+            divY = y - rect[1]
+            i = int(divX / (rect[2]/12))
+            j = int(divY / (rect[3]/12))
+            return i, j
+
+    return -1, -1
 
 def main():
     global turn, bo
@@ -38,9 +51,12 @@ def main():
                 pygame.quit()
 
             if event.type == pygame.MOUSEBUTTONUP and color != "s":
-                if color == bo.turn and bo.ready:
+                if color == bo.turn:
                     pos = pygame.mouse.get_pos()
+                    # TODO: implement this function
+                    #bo.update_moves()
                     i, j = click(pos)
+                    bo.select(i, j, color)
 
 
             pygame.display.update()

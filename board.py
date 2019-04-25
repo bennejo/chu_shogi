@@ -150,7 +150,10 @@ class Board:
         self.start_time = time.time()
 
     def update_moves(self):
-        pass
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.board[i][j] != 0:
+                    self.board[i][j].update_valid_moves(self.board)
 
     def draw(self, win, color):
         if self.last and color == self.turn:
@@ -173,19 +176,113 @@ class Board:
                         s = (i, j)
 
     def get_danger_moves(self, color):
-        pass
+        danger_moves = []
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.board[i][j] != 0:
+                    if self.board[i][j].color != color:
+                        for move in self.board[i][j].move_list:
+                            danger_moves.append(move)
+
+        return danger_moves
 
     def is_checked(self, color):
-        pass
+        self.update_moves()
+        danger_moves = self.get_danger_moves(color)
+        king_pos = (-1, -1)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.board[i][j] != 0:
+                    if self.board[i][j].king and self.board[i][j].color == color:
+                        king_pos = (j, i)
+
+        if king_pos in danger_moves:
+            return True
+
+        return False
 
     def select(self, col, row, color):
-        pass
+        changed = False
+        prev = (-1, -1)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.board[i][j] != 0:
+                    if self.board[i][j].selected:
+                        prev = (i, j)
+
+
+        # if piece
+        if self.board[row][col] == 0:
+            moves = self.board[prev[0]][prev[1]].move_list
+            if (col, row) in moves:
+                changed = self.move(prev, (row, col), color)
+
+        else:
+            if self.board[prev[0]][prev[1]].color != self.board[row][col].color:
+
+                moves = self.board[prev[0]][prev[1]].move_list
+                print("BOARD: " + str(self.board[prev[0]][prev[1]]))
+                print("PREV: " + str(prev))
+                if (col, row) in moves:
+                    changed = self.move(prev, (row, col), color)
+
+                if self.board[row][col].color == color:
+                    self.board[row][col].selected = True
+
+            else:
+                self.reset_selected()
+                if self.board[row][col].color == color:
+                    self.board[row][col].selected = True
+
+        if changed:
+            if self.turn == "w":
+                self.turn = "b"
+                self.reset_selected()
+            else:
+                self.turn = "w"
+                self.reset_selected()
 
     def reset_selected(self):
-        pass
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.board[i][j] != 0:
+                    self.board[i][j].selected = False
 
     def check_mate(self, color):
         pass
 
     def move(self, start, end, color):
-        pass
+        checkedBefore = self.is_checked(color)
+        changed = True
+        nBoard = self.board[:]
+        if nBoard[start[0]][start[1]].pawn:
+            nBoard[start[0]][start[1]].first = False
+
+        nBoard[start[0]][start[1]].change_pos((end[0], end[1]))
+        nBoard[end[0]][end[1]] = nBoard[start[0]][start[1]]
+        nBoard[start[0]][start[1]] = 0
+        self.board = nBoard
+
+        if self.is_checked(color) or (checkedBefore and self.is_checked(color)):
+            changed = False
+            nBoard = self.board[:]
+            if nBoard[end[0]][end[1]].pawn:
+                nBoard[end[0]][end[1]].first = True
+
+            nBoard[end[0]][end[1]].change_pos((start[0], start[1]))
+            nBoard[start[0]][start[1]] = nBoard[end[0]][end[1]]
+            nBoard[end[0]][end[1]] = 0
+            self.board = nBoard
+        else:
+            self.reset_selected()
+
+        self.update_moves()
+        if changed:
+            self.last = [start, end]
+            if self.turn == "w":
+                self.storedTime1 += (time.time() - self.startTime)
+            else:
+                self.storedTime2 += (time.time() - self.startTime)
+            self.startTime = time.time()
+
+        return changed
