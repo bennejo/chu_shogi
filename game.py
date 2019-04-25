@@ -10,24 +10,38 @@ board = pygame.transform.scale(pygame.image.load(os.path.join("img","board.png")
 
 clock = pygame.time.Clock()
 
-chu_shogi_board = Board()
-chu_shogi_board.create_board()
-chu_shogi_board.print_board()
+def redraw_gameWindow(win, color):
+    win.blit(board, (0, 0))
+    bo.draw(win, color)
 
+    pygame.display.update()
 
+def click(pos):
+    pass
 
 def main():
+    global turn, bo
+
+
+    bo = Board(12,12)
+    color = bo.turn
     quit_game = False
 
     while not quit_game:
 
-        win.blit(board, (0, 0))
+        redraw_gameWindow(win, color)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit_game = True
                 quit()
                 pygame.quit()
+
+            if event.type == pygame.MOUSEBUTTONUP and color != "s":
+                if color == bo.turn and bo.ready:
+                    pos = pygame.mouse.get_pos()
+                    i, j = click(pos)
+
 
             pygame.display.update()
             clock.tick(60)
