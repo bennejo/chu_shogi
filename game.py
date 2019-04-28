@@ -5,17 +5,41 @@ from client import join_game
 
 pg.init()
 
-splash_screen = pg.transform.scale(pg.image.load(os.path.join("img","splash.png")), (1000, 1000))
 board = pg.transform.scale(pg.image.load(os.path.join("img","board.png")), (1000, 1000))
+splash_screen = pg.transform.scale(pg.image.load(os.path.join("img","splash.png")), (1000, 1000))
+rect = (0,0,1000,1000)
+
 
 clock = pg.time.Clock()
 
-chu_shogi_board = Board()
-chu_shogi_board.create_board()
-chu_shogi_board.print_board()
+def redraw_gameWindow(win, color):
+    win.blit(board, (0, 0))
+    bo.draw(win, color)
 
+    pg.display.update()
+
+def click(pos):
+    """
+    :return: pos (x, y) in range 0-11 0-11
+    """
+    x = pos[0]
+    y = pos[1]
+    if rect[0] < x < rect[0] + rect[2]:
+        if rect[1] < y < rect[1] + rect[3]:
+            divX = x - rect[0]
+            divY = y - rect[1]
+            i = int(divX / (rect[2]/12))
+            j = int(divY / (rect[3]/12))
+            return i, j
+
+    return -1, -1
 
 def main():
+    global turn, bo
+
+    bo = Board(12,12)
+    color = bo.turn
+
     username = None
 
     win.blit(splash_screen, (0,0))
@@ -83,8 +107,7 @@ def main():
 
     while not quit_game:
 
-        win.blit(board, (0, 0))
-        chu_shogi_board.display_board(win)
+        redraw_gameWindow(win, color)
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -92,8 +115,19 @@ def main():
                 quit()
                 pg.quit()
 
-        pg.display.update()
-        clock.tick(60)
+            if event.type == pg.MOUSEBUTTONUP and color != "s":
+                if color == bo.turn:
+                    pos = pg.mouse.get_pos()
+                    # TODO: implement this function
+                    bo.update_moves()
+                    i, j = click(pos)
+                    bo.select(i, j, color)
+                    redraw_gameWindow(win, color)
+                    color = bo.turn
+
+            pg.display.update()
+            clock.tick(60)
+
 
 width = 1000
 height = 1000
