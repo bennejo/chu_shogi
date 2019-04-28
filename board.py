@@ -21,7 +21,6 @@ from pieces import SilverGeneral
 from pieces import VerticalMover
 
 import time
-import pygame as pg
 
 
 class Board:
@@ -31,9 +30,9 @@ class Board:
     startX = rect[0]
     startY = rect[1]
 
-    def __init__(self, rows, cols):
-        self.rows = rows
-        self.cols = cols
+    def __init__(self):
+        self.rows = 12
+        self.cols = 12
 
         self.ready = False
 
@@ -41,7 +40,7 @@ class Board:
 
         self.copy = True
 
-        self.board = [[0 for x in range(12)] for _ in range(rows)]
+        self.board = [[0 for x in range(12)] for _ in range(12)]
 
         self.board[0][0] = Lance(0, 0, "w")
         self.board[0][1] = FerociousLeopard(0, 1, "w")
@@ -136,8 +135,7 @@ class Board:
         self.board[11][9] = CopperGeneral(11, 9, "b")
         self.board[11][10] = FerociousLeopard(11, 10, "b")
         self.board[11][11] = Lance(11, 11, "b")
-
-        self.turn = "b"
+        self.selected = None
 
         self.time1 = 900
         self.time2 = 900
@@ -149,51 +147,41 @@ class Board:
 
         self.start_time = time.time()
 
+        self.turn = "w"
+        self.color = None
+
     def update_moves(self):
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.board[i][j] != 0:
                     self.board[i][j].update_valid_moves(self.board)
 
-    def draw(self, win, color):
-        if self.last and color == self.turn:
-            y, x = self.last[0]
-            y1, x1 = self.last[1]
+    def draw(self, win):
 
-            xx = (6 - x) +round(self.startX + (x * self.rect[2] / 12))
-            yy = 5 + round(self.startY + (y * self.rect[3] / 12))
-            pg.draw.circle(win, (0,0,255), (xx+42, yy+38), 34, 4)
-            xx1 = (6 - x) + round(self.startX + (x1 * self.rect[2] / 12))
-            yy1 = 5+ round(self.startY + (y1 * self.rect[3] / 12))
-            pg.draw.circle(win, (0, 0, 255), (xx1 + 42, yy1 + 38), 34, 4)
-
-        s = None
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.board[i][j] != 0:
-                    self.board[i][j].draw(win, color)
-                    if self.board[i][j].is_selected:
-                        s = (i, j)
+                    self.board[i][j].draw(win)
 
-    def get_danger_moves(self, color):
+    def get_danger_moves(self):
         danger_moves = []
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.board[i][j] != 0:
-                    if self.board[i][j].color != color:
+                    if self.board[i][j].color != self.color:
                         for move in self.board[i][j].move_list:
                             danger_moves.append(move)
 
         return danger_moves
 
-    def is_checked(self, color):
+    def is_checked(self):
         self.update_moves()
-        danger_moves = self.get_danger_moves(color)
+        danger_moves = self.get_danger_moves()
         king_pos = (-1, -1)
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.board[i][j] != 0:
-                    if self.board[i][j].king and self.board[i][j].color == color:
+                    if self.board[i][j].king and self.board[i][j].color == self.color:
                         king_pos = (j, i)
 
         if king_pos in danger_moves:
@@ -201,44 +189,21 @@ class Board:
 
         return False
 
-    def select(self, col, row, color):
-        changed = False
-        prev = (-1, -1)
-        for i in range(self.rows):
-            for j in range(self.cols):
-                if self.board[i][j] != 0:
-                    if self.board[i][j].selected:
-                        prev = (i, j)
+    def select(self, col, row):
+        if self.board[row][col] != 0:
+            to_select = self.board[row][col]
+            if to_select.color == self.color:
+                to_select.selected = True
+                self.selected = (row, col)
+                if to_select.lion:
+                    return 'lion'
+                else:
+                    return 'selected'
+            else:
 
-
-        # if piece
-        if self.board[row][col] == 0:
-            moves = self.board[prev[0]][prev[1]].move_list
-            if (col, row) in moves:
-                changed = self.move(prev, (row, col), color)
-
+                return 'not selected'
         else:
-            if self.board[prev[0]][prev[1]].color != self.board[row][col].color:
-
-                moves = self.board[prev[0]][prev[1]].move_list
-                if (col, row) in moves:
-                    changed = self.move(prev, (row, col), color)
-
-                if self.board[row][col].color == color:
-                    self.board[row][col].selected = True
-
-            else:
-                self.reset_selected()
-                if self.board[row][col].color == color:
-                    self.board[row][col].selected = True
-
-        if changed:
-            if self.turn == "w":
-                self.turn = "b"
-                self.reset_selected()
-            else:
-                self.turn = "w"
-                self.reset_selected()
+            return False
 
     def reset_selected(self):
         for i in range(self.rows):
@@ -249,27 +214,33 @@ class Board:
     def check_mate(self, color):
         pass
 
-    def move(self, start, end, color):
-        checkedBefore = self.is_checked(color)
-        changed = True
-        nBoard = self.board[:]
-        nBoard[start[0]][start[1]].change_pos((end[0], end[1]))
-        nBoard[end[0]][end[1]] = nBoard[start[0]][start[1]]
-        nBoard[start[0]][start[1]] = 0
-        self.board = nBoard
-
-        if self.is_checked(color) or (checkedBefore and self.is_checked(color)):
-            changed = False
-            nBoard = self.board[:]
-            nBoard[end[0]][end[1]].change_pos((start[0], start[1]))
-            nBoard[start[0]][start[1]] = nBoard[end[0]][end[1]]
-            nBoard[end[0]][end[1]] = 0
-            self.board = nBoard
+    def move(self, i, j):
+        print("in move handler")
+        if self.selected is not None:
+            for move in self.board[self.selected[0]][self.selected[1]].valid_moves(self.board):
+                print(str(move))
+        if self.selected is None:
+            return 'no selection'
+        elif (j, i) in self.board[self.selected[0]][self.selected[1]].valid_moves(self.board):
+            return 'valid move'
+        elif i == self.selected[0] and j == self.selected[1]:
+            self.board[i][j].selected = False
+            return 'deselected'
         else:
-            self.reset_selected()
+            return 'no move'
 
-        self.update_moves()
-        if changed:
-            self.last = [start, end]
+    def set_color(self, color):
+        self.color = color
 
-        return changed
+    def do_move(self, move_string):
+        """
+        assumes that move has been validated and performs the move given by the string
+        :param move_string: comma separated string with i,j,I,J
+            where (i,j) are the coordinates of the piece to move and (I,J) are the coordinates
+            of the space to move to
+        :return:
+        """
+        coords = [x.strip() for x in move_string.split(',')]
+        to_move = self.board[coords[0]][coords[1]]
+        self.board[coords[0]][coords[1]] = 0
+        self.board[coords[2]][coords[3]] = to_move

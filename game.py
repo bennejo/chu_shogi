@@ -1,102 +1,42 @@
 import pygame as pg
 import os
 from board import Board
-from client import join_game
+from login import splash_login
+from utils import click
+from utils import move_string
+from client import send_move
 
 pg.init()
 
 board = pg.transform.scale(pg.image.load(os.path.join("img","board.png")), (1000, 1000))
-splash_screen = pg.transform.scale(pg.image.load(os.path.join("img","splash.png")), (1000, 1000))
 rect = (0,0,1000,1000)
 
 
 clock = pg.time.Clock()
 
-def redraw_gameWindow(win, color):
+bo = Board()
+
+
+def redraw_gameWindow(win):
     win.blit(board, (0, 0))
-    bo.draw(win, color)
+    bo.draw(win)
 
     pg.display.update()
 
-def click(pos):
-    """
-    :return: pos (x, y) in range 0-11 0-11
-    """
-    x = pos[0]
-    y = pos[1]
-    if rect[0] < x < rect[0] + rect[2]:
-        if rect[1] < y < rect[1] + rect[3]:
-            divX = x - rect[0]
-            divY = y - rect[1]
-            i = int(divX / (rect[2]/12))
-            j = int(divY / (rect[3]/12))
-            return i, j
-
-    return -1, -1
 
 def main():
-    global turn, bo
-
-    bo = Board(12,12)
-    color = bo.turn
-
-    username = None
-
-    win.blit(splash_screen, (0,0))
-
-    start_game = False
     quit_game = False
 
-    input_box = pg.Rect(400, 250, 140, 32)
-    font = pg.font.Font(None, 32)
-    color_inactive = pg.Color('grey')
-    color_active = pg.Color('black')
-    color = color_inactive
-    active = False
-    text = ''
+    # The first player to join the game takes black and waits for the other player to make the first move
+    # valid values for 'phase' are 'select', 'lion', 'move', and 'wait'
+    # the 'lion' value of 'phase' denotes the phase in which the first move of the lion is selected
+    # the lion will take that position on the board (offset to show any piece underneath it in the case of moving
+    # over friendly pieces) and will be highlighted as selected and the phase changed to 'move' for the second move
+    # to be selected. [N.B. eventually we will need to distinguish between capturing an enemy piece on the first lion
+    # move and flying over the piece, as those are both valid moves]
 
-    while not start_game:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                quit_game = True
-                start_game = True
-                quit()
-                pg.quit()
-            if event.type == pg.MOUSEBUTTONDOWN:
-                # If the user clicked on the input_box rect.
-                if input_box.collidepoint(event.pos):
-                    # Toggle the active variable.
-                    active = not active
-                else:
-                    active = False
-                # Change the current color of the input box.
-                color = color_active if active else color_inactive
-            if event.type == pg.KEYDOWN:
-                if active:
-                    if event.key == pg.K_RETURN:
-                        if text != '':
-                            username = text
-                            start_game = True
-                    elif event.key == pg.K_BACKSPACE:
-                        text = text[:-1]
-                    else:
-                        text += event.unicode
+    username, login_result = splash_login(win, clock)
 
-        # Render the current text.
-        txt_surface = font.render(text, True, color)
-        # Resize the box if the text is too long.
-
-        input_box.w = 200
-        # Blit the text.
-        win.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
-        # Blit the input_box rect.
-        pg.draw.rect(win, color, input_box, 2)
-
-        pg.display.update()
-        clock.tick(30)
-
-    # log into server with username
-    login_result = join_game(username)
 
     if login_result[0:5] == b'ERROR':
         # TODO: display error message and wait some few seconds
@@ -105,9 +45,19 @@ def main():
         quit()
         pg.quit()
 
+    elif login_result == b'joined game':
+        bo.set_color('b')
+        phase = 'wait'
+        print("DEBUG: logged in as black, phase is wait")
+
+    else:
+        bo.set_color('w')
+        phase = 'select'
+        print("DEBUG: logged in a white, phase is select")
+
     while not quit_game:
 
-        redraw_gameWindow(win, color)
+        redraw_gameWindow(win)
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -115,15 +65,46 @@ def main():
                 quit()
                 pg.quit()
 
-            if event.type == pg.MOUSEBUTTONUP and color != "s":
-                if color == bo.turn:
+            if event.type == pg.MOUSEBUTTONUP:
+                print("Click event")
+                if phase == 'select':
                     pos = pg.mouse.get_pos()
-                    # TODO: implement this function
-                    bo.update_moves()
                     i, j = click(pos)
-                    bo.select(i, j, color)
-                    redraw_gameWindow(win, color)
-                    color = bo.turn
+                    result = bo.select(i, j)
+                    if result == 'lion':
+                        phase = 'lion'
+                    elif result == 'selected':
+                        print("DEBUG: phase is now move")
+                        phase = 'move'
+
+                    redraw_gameWindow(win)
+
+                elif phase == 'move':
+                    print("in move click handler")
+                    pos = pg.mouse.get_pos()
+                    i, j = click(pos)
+
+                    result = bo.move(i, j)
+                    print("move result is: " + result)
+                    if result == 'no selection' or result == 'deselected':
+                        phase = 'select'
+                        print('DEBUG: piece deselected, phase is now select')
+                    elif result == 'valid move':
+                        print("DEBUG valid move at " + str(i) + ", " + str(j))
+                        send_string = move_string(bo.selected, [i, j])
+                        send_result = send_move(username, send_string)
+                        if send_result:
+                            print("DEBUG: successfully sent (" + send_string + ") to server")
+                            phase = 'wait'
+                            bo.do_move(send_string)
+                        else:
+                            # TODO: handle this a bit more gracefully
+                            print('ERROR: Server error sending move.')
+                            quit_game = True
+                            quit()
+                            pg.quit()
+
+                    redraw_gameWindow(win)
 
             pg.display.update()
             clock.tick(60)
