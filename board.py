@@ -137,7 +137,7 @@ class Board:
         self.board[11][10] = FerociousLeopard(11, 10, "b")
         self.board[11][11] = Lance(11, 11, "b")
 
-        self.turn = "w"
+        self.turn = "b"
 
         self.time1 = 900
         self.time2 = 900
@@ -162,10 +162,10 @@ class Board:
 
             xx = (6 - x) +round(self.startX + (x * self.rect[2] / 12))
             yy = 5 + round(self.startY + (y * self.rect[3] / 12))
-            pygame.draw.circle(win, (0,0,255), (xx+32, yy+30), 34, 4)
+            pg.draw.circle(win, (0,0,255), (xx+42, yy+38), 34, 4)
             xx1 = (6 - x) + round(self.startX + (x1 * self.rect[2] / 12))
             yy1 = 5+ round(self.startY + (y1 * self.rect[3] / 12))
-            pygame.draw.circle(win, (0, 0, 255), (xx1 + 32, yy1 + 30), 34, 4)
+            pg.draw.circle(win, (0, 0, 255), (xx1 + 42, yy1 + 38), 34, 4)
 
         s = None
         for i in range(self.rows):
@@ -221,8 +221,6 @@ class Board:
             if self.board[prev[0]][prev[1]].color != self.board[row][col].color:
 
                 moves = self.board[prev[0]][prev[1]].move_list
-                print("BOARD: " + str(self.board[prev[0]][prev[1]]))
-                print("PREV: " + str(prev))
                 if (col, row) in moves:
                     changed = self.move(prev, (row, col), color)
 
@@ -255,9 +253,6 @@ class Board:
         checkedBefore = self.is_checked(color)
         changed = True
         nBoard = self.board[:]
-        if nBoard[start[0]][start[1]].pawn:
-            nBoard[start[0]][start[1]].first = False
-
         nBoard[start[0]][start[1]].change_pos((end[0], end[1]))
         nBoard[end[0]][end[1]] = nBoard[start[0]][start[1]]
         nBoard[start[0]][start[1]] = 0
@@ -266,9 +261,6 @@ class Board:
         if self.is_checked(color) or (checkedBefore and self.is_checked(color)):
             changed = False
             nBoard = self.board[:]
-            if nBoard[end[0]][end[1]].pawn:
-                nBoard[end[0]][end[1]].first = True
-
             nBoard[end[0]][end[1]].change_pos((start[0], start[1]))
             nBoard[start[0]][start[1]] = nBoard[end[0]][end[1]]
             nBoard[end[0]][end[1]] = 0
@@ -279,10 +271,5 @@ class Board:
         self.update_moves()
         if changed:
             self.last = [start, end]
-            if self.turn == "w":
-                self.storedTime1 += (time.time() - self.startTime)
-            else:
-                self.storedTime2 += (time.time() - self.startTime)
-            self.startTime = time.time()
 
         return changed

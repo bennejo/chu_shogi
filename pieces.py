@@ -58,6 +58,7 @@ for img in b_img_paths:
 for img in w_img_paths:
     w_imgs.append(pg.transform.scale(img, (82,82)))
 
+
 class Piece:
     img = 100
     rect = (0, 0, 1000, 1000)
@@ -70,6 +71,7 @@ class Piece:
         self.color = color
         self.selected = False
         self.move_list = []
+        self.king = False
 
     def is_selected(self):
         return self.selected
@@ -94,12 +96,14 @@ class Piece:
         win.blit(draw_img, (x, y))
 
     def change_pos(self, pos):
-        pass
+        self.row = pos[0]
+        self.col = pos[1]
 
-    # CHECK: Not sure I like this string convention
+    # TODO: Not sure I like this string convention
     def __str__(self):
         return str(self.col) + " " + str(self.row)
 
+# TODO: Define promotion to Dragon Horse
 class Bishop(Piece):
     img = 0
 
@@ -175,91 +179,979 @@ class Bishop(Piece):
 
         return moves
 
+# TODO: Define promotion to Flying Stag
 class BlindTiger(Piece):
     img = 1
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            # TOP LEFT
+            if j > 0:
+                p = board[i - 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i - 1,))
+
+            if self.color == "w":
+                # TOP MIDDLE
+                p = board[i - 1][j]
+                if p == 0:
+                    moves.append((j, i - 1))
+                elif p.color != self.color:
+                    moves.append((j, i - 1))
+
+            # TOP RIGHT
+            if j < 11:
+                p = board[i - 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            # BOTTOM LEFT
+            if j > 0:
+                p = board[i + 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i + 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i + 1,))
+
+            if self.color == "b":
+                # BOTTOM MIDDLE
+                p = board[i + 1][j]
+                if p == 0:
+                    moves.append((j, i + 1))
+                elif p.color != self.color:
+                    moves.append((j, i + 1))
+
+            # BOTTOM RIGHT
+            if j < 11:
+                p = board[i + 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i + 1))
+                elif p.color != self.color:
+                    moves.append((j + 1, i + 1))
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+
+        return moves
+
+# TODO: Define promotion to Side Mover
 class CopperGeneral(Piece):
     img = 2
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            if self.color == "b":
+                # TOP LEFT
+                if j > 0:
+                    p = board[i - 1][j - 1]
+                    if p == 0:
+                        moves.append((j - 1, i - 1,))
+                    elif p.color != self.color:
+                        moves.append((j - 1, i - 1,))
+
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+            if self.color == "b":
+                # TOP RIGHT
+                if j < 11:
+                    p = board[i - 1][j + 1]
+                    if p == 0:
+                        moves.append((j + 1, i - 1,))
+                    elif p.color != self.color:
+                        moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            if self.color == "w":
+                # BOTTOM LEFT
+                if j > 0:
+                    p = board[i + 1][j - 1]
+                    if p == 0:
+                        moves.append((j - 1, i + 1,))
+                    elif p.color != self.color:
+                        moves.append((j - 1, i + 1,))
+
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+            if self.color == "w":
+                # BOTTOM RIGHT
+                if j < 11:
+                    p = board[i + 1][j + 1]
+                    if p == 0:
+                        moves.append((j + 1, i + 1))
+                    elif p.color != self.color:
+                        moves.append((j + 1, i + 1))
+
+        return moves
+
+# TODO: Define promotion to Crown Prince
 class DrunkElephant(Piece):
     img = 3
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            # TOP LEFT
+            if j > 0:
+                p = board[i - 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i - 1,))
+
+            if self.color == "b":
+                # TOP MIDDLE
+                p = board[i - 1][j]
+                if p == 0:
+                    moves.append((j, i - 1))
+                elif p.color != self.color:
+                    moves.append((j, i - 1))
+
+            # TOP RIGHT
+            if j < 11:
+                p = board[i - 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            # BOTTOM LEFT
+            if j > 0:
+                p = board[i + 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i + 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i + 1,))
+
+            if self.color == "w":
+                # BOTTOM MIDDLE
+                p = board[i + 1][j]
+                if p == 0:
+                    moves.append((j, i + 1))
+                elif p.color != self.color:
+                    moves.append((j, i + 1))
+
+            # BOTTOM RIGHT
+            if j < 11:
+                p = board[i + 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i + 1))
+                elif p.color != self.color:
+                    moves.append((j + 1, i + 1))
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+
+        return moves
+
+# TODO: Define promotion to Horned Falcon
 class DragonHorse(Piece):
     img = 4
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        # TOP RIGHT
+        djL = j + 1
+        djR = j - 1
+        for di in range(i - 1, -1, -1):
+            if djL < 8:
+                p = board[di][djL]
+                if p == 0:
+                    moves.append((djL, di))
+                elif p.color != self.color:
+                    moves.append((djL, di))
+                    break
+                else:
+                    break
+            else:
+                break
+
+            djL += 1
+
+        for di in range(i - 1, -1, -1):
+            if djR > -1:
+                p = board[di][djR]
+                if p == 0:
+                    moves.append((djR, di))
+                elif p.color != self.color:
+                    moves.append((djR, di))
+                    break
+                else:
+                    break
+            else:
+                break
+
+            djR -= 1
+
+        # TOP LEFT
+        djL = j + 1
+        djR = j - 1
+        for di in range(i + 1, 8):
+            if djL < 8:
+                p = board[di][djL]
+                if p == 0:
+                    moves.append((djL, di))
+                elif p.color != self.color:
+                    moves.append((djL, di))
+                    break
+                else:
+                    break
+            else:
+                break
+            djL += 1
+        for di in range(i + 1, 8):
+            if djR > -1:
+                p = board[di][djR]
+                if p == 0:
+                    moves.append((djR, di))
+                elif p.color != self.color:
+                    moves.append((djR, di))
+                    break
+                else:
+                    break
+            else:
+                break
+
+            djR -= 1
+
+        if i > 0:
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+        if i < 11:
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+        return moves
+
+# TODO: Define promotion to Soaring Eagle
 class DragonKing(Piece):
     img = 5
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
+
+        moves = []
+
+        # UP RANGE
+        for x in range(i - 1, -1, -1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # DOWN RANGE
+        for x in range(i + 1, 12, 1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # LEFT RANGE
+        for x in range(j - 1, -1, -1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        # RIGHT RANGE
+        for x in range(j + 1, 12, 1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        if i > 0:
+            # TOP LEFT
+            if j > 0:
+                p = board[i - 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i - 1,))
+
+            # TOP RIGHT
+            if j < 11:
+                p = board[i - 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            # BOTTOM LEFT
+            if j > 0:
+                p = board[i + 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i + 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i + 1,))
+
+            # BOTTOM RIGHT
+            if j < 11:
+                p = board[i + 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i + 1))
+                elif p.color != self.color:
+                    moves.append((j + 1, i + 1))
+
+        return moves
+
 
 class FreeKing(Piece):
     img = 6
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        # TOP RIGHT
+        djL = j + 1
+        djR = j - 1
+        for di in range(i - 1, -1, -1):
+            if djL < 8:
+                p = board[di][djL]
+                if p == 0:
+                    moves.append((djL, di))
+                elif p.color != self.color:
+                    moves.append((djL, di))
+                    break
+                else:
+                    djL = 9
+
+            djL += 1
+
+        for di in range(i - 1, -1, -1):
+            if djR > -1:
+                p = board[di][djR]
+                if p == 0:
+                    moves.append((djR, di))
+                elif p.color != self.color:
+                    moves.append((djR, di))
+                    break
+                else:
+                    djR = -1
+
+            djR -= 1
+
+        # TOP LEFT
+        djL = j + 1
+        djR = j - 1
+        for di in range(i + 1, 8):
+            if djL < 8:
+                p = board[di][djL]
+                if p == 0:
+                    moves.append((djL, di))
+                elif p.color != self.color:
+                    moves.append((djL, di))
+                    break
+                else:
+                    djL = 9
+            djL += 1
+        for di in range(i + 1, 8):
+            if djR > -1:
+                p = board[di][djR]
+                if p == 0:
+                    moves.append((djR, di))
+                elif p.color != self.color:
+                    moves.append((djR, di))
+                    break
+                else:
+                    djR = -1
+
+            djR -= 1
+
+        # UP
+        for x in range(i - 1, -1, -1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # DOWN
+        for x in range(i + 1, 8, 1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # LEFT
+        for x in range(j - 1, -1, -1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        # RIGHT
+        for x in range(j + 1, 8, 1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        return moves
+
+# TODO: Define promotion to Bishop
 class FerociousLeopard(Piece):
     img = 7
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            # TOP LEFT
+            if j > 0:
+                p = board[i - 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i - 1,))
+
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+            # TOP RIGHT
+            if j < 11:
+                p = board[i - 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            # BOTTOM LEFT
+            if j > 0:
+                p = board[i + 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i + 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i + 1,))
+
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+            # BOTTOM RIGHT
+            if j < 11:
+                p = board[i + 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i + 1))
+                elif p.color != self.color:
+                    moves.append((j + 1, i + 1))
+
+        return moves
+
+# TODO: Define promotion to Rook
 class GoldGeneral(Piece):
     img = 8
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            if self.color == "b":
+                # TOP LEFT
+                if j > 0:
+                    p = board[i - 1][j - 1]
+                    if p == 0:
+                        moves.append((j - 1, i - 1,))
+                    elif p.color != self.color:
+                        moves.append((j - 1, i - 1,))
+
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+            if self.color == "b":
+                # TOP RIGHT
+                if j < 11:
+                    p = board[i - 1][j + 1]
+                    if p == 0:
+                        moves.append((j + 1, i - 1,))
+                    elif p.color != self.color:
+                        moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            if self.color == "w":
+                # BOTTOM LEFT
+                if j > 0:
+                    p = board[i + 1][j - 1]
+                    if p == 0:
+                        moves.append((j - 1, i + 1,))
+                    elif p.color != self.color:
+                        moves.append((j - 1, i + 1,))
+
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+            if self.color == "w":
+                # BOTTOM RIGHT
+                if j < 11:
+                    p = board[i + 1][j + 1]
+                    if p == 0:
+                        moves.append((j + 1, i + 1))
+                    elif p.color != self.color:
+                        moves.append((j + 1, i + 1))
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+
+        return moves
+
+# TODO: Define promotion to Drunk Elephant
 class GoBetween(Piece):
     img = 9
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
+
+        moves = []
+
+        if i > 0:
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+        if i < 11:
+
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+        return moves
+
 
 class King(Piece):
     img = 10
 
-    def valid_moves(self, board):
-        pass
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.king = True
 
+    def valid_moves(self, board):
+        i = self.row
+        j = self.col
+
+        moves = []
+
+        if i > 0:
+            # TOP LEFT
+            if j > 0:
+                p = board[i - 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i - 1,))
+
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+            # TOP RIGHT
+            if j < 11:
+                p = board[i - 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            # BOTTOM LEFT
+            if j > 0:
+                p = board[i + 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i + 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i + 1,))
+
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+            # BOTTOM RIGHT
+            if j < 11:
+                p = board[i + 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i + 1))
+                elif p.color != self.color:
+                    moves.append((j + 1, i + 1))
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+
+        return moves
+
+# TODO: Define promotion to Lion
 class Kylin(Piece):
     img = 11
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            # TOP LEFT
+            if j > 0:
+                p = board[i - 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i - 1,))
+
+            # TOP RIGHT
+            if j < 11:
+                p = board[i - 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j + 1, i - 1,))
+        if i > 1:
+            # TOP JUMP MIDDLE
+            p = board[i - 2][j]
+            if p == 0:
+                moves.append((j, i - 2))
+            elif p.color != self.color:
+                moves.append((j, i - 2))
+
+        if i < 11:
+            # BOTTOM LEFT
+            if j > 0:
+                p = board[i + 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i + 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i + 1,))
+
+            # BOTTOM RIGHT
+            if j < 11:
+                p = board[i + 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i + 1))
+                elif p.color != self.color:
+                    moves.append((j + 1, i + 1))
+
+        if i < 10:
+            # BOTTOM JUMP MIDDLE
+            p = board[i + 2][j]
+            if p == 0:
+                moves.append((j, i + 2))
+            elif p.color != self.color:
+                moves.append((j, i + 2))
+
+        # MIDDLE LEFT
+        if j > 1:
+            p = board[i][j - 2]
+            if p == 0:
+                moves.append((j - 2, i))
+            elif p.color != self.color:
+                moves.append((j - 2, i))
+
+        # MIDDLE RIGHT
+        if j < 10:
+            p = board[i][j + 2]
+            if p == 0:
+                moves.append((j + 2, i))
+            elif p.color != self.color:
+                moves.append((j + 2, i))
+
+        return moves
+
+# TODO: Define promotion to White Horse
 class Lance(Piece):
     img = 12
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
+        moves = []
+
+        # White is ranged down
+        if self.color == "w":
+            for x in range(i + 1, 12, 1):
+                p = board[x][j]
+                if p == 0:
+                    moves.append((j, x))
+                elif p.color != self.color:
+                    moves.append((j, x))
+                    break
+                else:
+                    break
+
+        # Black is ranged up
+        else:
+            for x in range(i - 1, -1, -1):
+                p = board[x][j]
+                if p == 0:
+                    moves.append((j, x))
+                elif p.color != self.color:
+                    moves.append((j, x))
+                    break
+                else:
+                    break
+
+        return moves
 
 class Lion(Piece):
     img = 13
 
+    # TODO: These are the valid moves for a king. We need to adjust them to Lion moves
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            # TOP LEFT
+            if j > 0:
+                p = board[i - 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i - 1,))
+
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+            # TOP RIGHT
+            if j < 11:
+                p = board[i - 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i - 1,))
+                elif p.color != self.color:
+                    moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            # BOTTOM LEFT
+            if j > 0:
+                p = board[i + 1][j - 1]
+                if p == 0:
+                    moves.append((j - 1, i + 1,))
+                elif p.color != self.color:
+                    moves.append((j - 1, i + 1,))
+
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+            # BOTTOM RIGHT
+            if j < 11:
+                p = board[i + 1][j + 1]
+                if p == 0:
+                    moves.append((j + 1, i + 1))
+                elif p.color != self.color:
+                    moves.append((j + 1, i + 1))
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+
+        return moves
+
+# TODO: Define promotion to Tokin
 class Pawn(Piece):
     img = 14
 
     def valid_moves(self, board):
         i = self.row
         j = self.col
-        print("({},{})".format(i,j))
         moves = []
         try:
             if self.color == "w":
@@ -267,13 +1159,6 @@ class Pawn(Piece):
                     p = board[i + 1][j]
                     if p == 0:
                         moves.append((j, i + 1))
-
-                    # DIAGONAL
-                    if j < 11:
-                        p = board[i + 1][j + 1]
-                        if p != 0:
-                            if p.color != self.color:
-                                moves.append((j + 1, i + 1))
 
                     if j > 0:
                         p = board[i + 1][j - 1]
@@ -289,67 +1174,356 @@ class Pawn(Piece):
                     if p == 0:
                         moves.append((j, i - 1))
 
-                if j < 11:
-                    p = board[i - 1][j + 1]
-                    if p != 0:
-                        if p.color != self.color:
-                            moves.append((j + 1, i - 1))
-
                 if j > 0:
                     p = board[i - 1][j - 1]
                     if p != 0:
                         if p.color != self.color:
                             moves.append((j - 1, i - 1))
 
-        except Exception as e:
-            print(e)
+        except:
             exit(1)
 
-        print("Moves: {}".format(str(moves)))
         return moves
 
+# TODO: Define promotion to Free King
 class Phoenix(Piece):
     img = 15
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+        if i > 1:
+            # TOP JUMP LEFT
+            if j > 1:
+                p = board[i - 2][j - 2]
+                if p == 0:
+                    moves.append((j - 2, i - 2,))
+                elif p.color != self.color:
+                    moves.append((j - 2, i - 2,))
+
+            # TOP JUMP RIGHT
+            if j < 10:
+                p = board[i - 2][j + 2]
+                if p == 0:
+                    moves.append((j + 2, i - 2,))
+                elif p.color != self.color:
+                    moves.append((j + 2, i - 2,))
+
+        if i < 11:
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+        if i < 10:
+            # BOTTOM JUMP LEFT
+            if j > 1:
+                p = board[i + 2][j - 2]
+                if p == 0:
+                    moves.append((j - 2, i + 2,))
+                elif p.color != self.color:
+                    moves.append((j - 2, i + 2,))
+
+            # BOTTOM JUMP RIGHT
+            if j < 10:
+                p = board[i + 2][j + 2]
+                if p == 0:
+                    moves.append((j + 2, i + 2))
+                elif p.color != self.color:
+                    moves.append((j + 2, i + 2))
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+
+        return moves
+
+# TODO: Define promotion to Dragon King
 class Rook(Piece):
     img = 16
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        # UP RANGE
+        for x in range(i - 1, -1, -1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # DOWN RANGE
+        for x in range(i + 1, 12, 1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # LEFT RANGE
+        for x in range(j - 1, -1, -1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        # RIGHT RANGE
+        for x in range(j + 1, 12, 1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        return moves
+
+# TODO: Define promotion to Whale
 class ReverseChariot(Piece):
     img = 17
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        # UP RANGE
+        for x in range(i - 1, -1, -1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # DOWN RANGE
+        for x in range(i + 1, 12, 1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        return moves
+
+# TODO: Define promotion to Vertical Mover
 class SilverGeneral(Piece):
     img = 18
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            if self.color == "b":
+                # TOP LEFT
+                if j > 0:
+                    p = board[i - 1][j - 1]
+                    if p == 0:
+                        moves.append((j - 1, i - 1,))
+                    elif p.color != self.color:
+                        moves.append((j - 1, i - 1,))
+
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+            if self.color == "b":
+                # TOP RIGHT
+                if j < 11:
+                    p = board[i - 1][j + 1]
+                    if p == 0:
+                        moves.append((j + 1, i - 1,))
+                    elif p.color != self.color:
+                        moves.append((j + 1, i - 1,))
+
+        if i < 11:
+            if self.color == "w":
+                # BOTTOM LEFT
+                if j > 0:
+                    p = board[i + 1][j - 1]
+                    if p == 0:
+                        moves.append((j - 1, i + 1,))
+                    elif p.color != self.color:
+                        moves.append((j - 1, i + 1,))
+
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+            if self.color == "w":
+                # BOTTOM RIGHT
+                if j < 11:
+                    p = board[i + 1][j + 1]
+                    if p == 0:
+                        moves.append((j + 1, i + 1))
+                    elif p.color != self.color:
+                        moves.append((j + 1, i + 1))
+
+        return moves
+
+# TODO: Define promotion to Free Boar
 class SideMover(Piece):
     img = 19
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        if i > 0:
+            # TOP MIDDLE
+            p = board[i - 1][j]
+            if p == 0:
+                moves.append((j, i - 1))
+            elif p.color != self.color:
+                moves.append((j, i - 1))
+
+        if i < 11:
+            # BOTTOM MIDDLE
+            p = board[i + 1][j]
+            if p == 0:
+                moves.append((j, i + 1))
+            elif p.color != self.color:
+                moves.append((j, i + 1))
+
+        # LEFT RANGE
+        for x in range(j - 1, -1, -1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        # RIGHT RANGE
+        for x in range(j + 1, 12, 1):
+            p = board[i][x]
+            if p == 0:
+                moves.append((x, i))
+            elif p.color != self.color:
+                moves.append((x, i))
+                break
+            else:
+                break
+
+        return moves
+
+# TODO: Define promotion to Flying Ox
 class VerticalMover(Piece):
     img = 20
 
     def valid_moves(self, board):
-        pass
+        i = self.row
+        j = self.col
 
+        moves = []
+
+        # UP RANGE
+        for x in range(i - 1, -1, -1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # DOWN RANGE
+        for x in range(i + 1, 12, 1):
+            p = board[x][j]
+            if p == 0:
+                moves.append((j, x))
+            elif p.color != self.color:
+                moves.append((j, x))
+                break
+            else:
+                break
+
+        # MIDDLE LEFT
+        if j > 0:
+            p = board[i][j - 1]
+            if p == 0:
+                moves.append((j - 1, i))
+            elif p.color != self.color:
+                moves.append((j - 1, i))
+
+        # MIDDLE RIGHT
+        if j < 11:
+            p = board[i][j + 1]
+            if p == 0:
+                moves.append((j + 1, i))
+            elif p.color != self.color:
+                moves.append((j + 1, i))
+        return moves
+
+# TODO: Define valid moves
 class CrownPrince(Piece):
     img = 100
 
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class FlyingOx(Piece):
 
     img = 100
@@ -357,42 +1531,49 @@ class FlyingOx(Piece):
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class FlyingStag(Piece):
     img = 100
 
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class FreeBoar(Piece):
     img = 100
 
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class HornedFalcon(Piece):
     img = 100
 
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class SoaringEagle(Piece):
     img = 100
 
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class Tokin(Piece):
     img = 100
 
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class Whale(Piece):
     img = 100
 
     def valid_moves(self, board):
         pass
 
+# TODO: Define valid moves
 class WhiteHorse(Piece):
     img = 100
 

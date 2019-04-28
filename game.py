@@ -1,20 +1,20 @@
-import pygame
+import pygame as pg
 import os
 from board import Board
 
-pygame.init()
+pg.init()
 
-board = pygame.transform.scale(pygame.image.load(os.path.join("img","board.png")), (1000, 1000))
+board = pg.transform.scale(pg.image.load(os.path.join("img","board.png")), (1000, 1000))
 rect = (0,0,1000,1000)
 
 
-clock = pygame.time.Clock()
+clock = pg.time.Clock()
 
 def redraw_gameWindow(win, color):
     win.blit(board, (0, 0))
     bo.draw(win, color)
 
-    pygame.display.update()
+    pg.display.update()
 
 def click(pos):
     """
@@ -32,9 +32,9 @@ def click(pos):
 
     return -1, -1
 
+
 def main():
     global turn, bo
-
 
     bo = Board(12,12)
     color = bo.turn
@@ -44,26 +44,28 @@ def main():
 
         redraw_gameWindow(win, color)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
                 quit_game = True
                 quit()
-                pygame.quit()
+                pg.quit()
 
-            if event.type == pygame.MOUSEBUTTONUP and color != "s":
+            if event.type == pg.MOUSEBUTTONUP and color != "s":
                 if color == bo.turn:
-                    pos = pygame.mouse.get_pos()
+                    pos = pg.mouse.get_pos()
                     # TODO: implement this function
-                    #bo.update_moves()
+                    bo.update_moves()
                     i, j = click(pos)
                     bo.select(i, j, color)
+                    redraw_gameWindow(win, color)
+                    color = bo.turn
 
-
-            pygame.display.update()
+            pg.display.update()
             clock.tick(60)
+
 
 width = 1000
 height = 1000
-win = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Chu Shogi")
+win = pg.display.set_mode((width, height))
+pg.display.set_caption("Chu Shogi")
 main()
