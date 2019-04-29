@@ -72,6 +72,7 @@ class Piece:
         self.selected = False
         self.move_list = []
         self.king = False
+        self.lion = False
 
     def is_selected(self):
         return self.selected
@@ -79,7 +80,7 @@ class Piece:
     def update_valid_moves(self, board):
         self.move_list = self.valid_moves(board)
 
-    def draw(self, win, color):
+    def draw(self, win):
         if self.color == 'w':
             draw_img = w_imgs[self.img]
         else:
@@ -90,7 +91,7 @@ class Piece:
         y = 5 + round(self.startY + (self.row * self.rect[3] / 12))
 
         # CHECK:  Numbers will need fine tuning
-        if self.selected and self.color == color:
+        if self.selected:
             pg.draw.rect(win, (255, 0, 0), (x, y, 76, 76), 4)
 
         win.blit(draw_img, (x, y))
@@ -1070,6 +1071,11 @@ class Lance(Piece):
         return moves
 
 class Lion(Piece):
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.lion = True
+
     img = 13
 
     # TODO: These are the valid moves for a king. We need to adjust them to Lion moves
