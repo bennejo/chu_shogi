@@ -5,6 +5,7 @@ from login import splash_login
 from utils import click
 from utils import move_string
 from client import send_move
+from client import get_move
 
 pg.init()
 
@@ -58,6 +59,16 @@ def main():
     while not quit_game:
 
         redraw_gameWindow(win)
+
+        if phase == 'wait':
+            clock.tick(200)
+            result = get_move(username)
+            if result:
+                bo.do_move(result.decode('utf-8'))
+                phase = 'select'
+                print("DEBUG: got move from server, phase is select")
+
+                redraw_gameWindow(win)
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
