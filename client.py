@@ -23,7 +23,6 @@ def send_move(username, move):
 
 
 def get_move(username):
-    print("DEBUG: getting move from server")
     move_url = url + "/game/" + username
     result_raw = requests.get(move_url)
     result = result_raw._content
