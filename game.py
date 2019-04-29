@@ -66,7 +66,6 @@ def main():
                 pg.quit()
 
             if event.type == pg.MOUSEBUTTONUP:
-                print("Click event")
                 if phase == 'select':
                     pos = pg.mouse.get_pos()
                     i, j = click(pos)
@@ -74,27 +73,22 @@ def main():
                     if result == 'lion':
                         phase = 'lion'
                     elif result == 'selected':
-                        print("DEBUG: phase is now move")
                         phase = 'move'
 
                     redraw_gameWindow(win)
 
                 elif phase == 'move':
-                    print("in move click handler")
+
                     pos = pg.mouse.get_pos()
                     i, j = click(pos)
 
                     result = bo.move(i, j)
-                    print("move result is: " + result)
                     if result == 'no selection' or result == 'deselected':
                         phase = 'select'
-                        print('DEBUG: piece deselected, phase is now select')
                     elif result == 'valid move':
-                        print("DEBUG valid move at " + str(i) + ", " + str(j))
                         send_string = move_string(bo.selected, [i, j])
                         send_result = send_move(username, send_string)
                         if send_result:
-                            print("DEBUG: successfully sent (" + send_string + ") to server")
                             phase = 'wait'
                             bo.do_move(send_string)
                         else:

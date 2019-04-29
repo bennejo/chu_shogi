@@ -15,7 +15,8 @@ def send_move(username, move):
     payload = {'key':'chu-client', 'move':move}
     result_raw = requests.post(move_url, json=payload)
     result = result_raw._content
-    if result[:14] == 'Submitted move':
+    print(result[:14])
+    if result[:14] == b'Submitted move':
         return True
     else:
         return False

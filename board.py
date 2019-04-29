@@ -151,22 +151,22 @@ class Board:
         self.color = None
 
     def update_moves(self):
-        for i in range(self.rows):
-            for j in range(self.cols):
+        for i in range(self.cols):
+            for j in range(self.rows):
                 if self.board[i][j] != 0:
                     self.board[i][j].update_valid_moves(self.board)
 
     def draw(self, win):
 
-        for i in range(self.rows):
-            for j in range(self.cols):
+        for i in range(self.cols):
+            for j in range(self.rows):
                 if self.board[i][j] != 0:
                     self.board[i][j].draw(win)
 
     def get_danger_moves(self):
         danger_moves = []
-        for i in range(self.rows):
-            for j in range(self.cols):
+        for i in range(self.cols):
+            for j in range(self.rows):
                 if self.board[i][j] != 0:
                     if self.board[i][j].color != self.color:
                         for move in self.board[i][j].move_list:
@@ -190,11 +190,12 @@ class Board:
         return False
 
     def select(self, col, row):
-        if self.board[row][col] != 0:
-            to_select = self.board[row][col]
+        if self.board[col][row] != 0:
+            to_select = self.board[col][row]
             if to_select.color == self.color:
                 to_select.selected = True
-                self.selected = (row, col)
+                print("Selected a " + str(type(to_select)) + "at " + str([row, col]))
+                self.selected = (col, row)
                 if to_select.lion:
                     return 'lion'
                 else:
@@ -206,8 +207,8 @@ class Board:
             return False
 
     def reset_selected(self):
-        for i in range(self.rows):
-            for j in range(self.cols):
+        for i in range(self.cols):
+            for j in range(self.rows):
                 if self.board[i][j] != 0:
                     self.board[i][j].selected = False
 
@@ -215,7 +216,6 @@ class Board:
         pass
 
     def move(self, i, j):
-        print("in move handler")
         if self.selected is not None:
             for move in self.board[self.selected[0]][self.selected[1]].valid_moves(self.board):
                 print(str(move))
@@ -240,7 +240,10 @@ class Board:
             of the space to move to
         :return:
         """
-        coords = [x.strip() for x in move_string.split(',')]
+        coords = [int(x.strip()) for x in move_string.split(',')]
         to_move = self.board[coords[0]][coords[1]]
         self.board[coords[0]][coords[1]] = 0
         self.board[coords[2]][coords[3]] = to_move
+        to_move.change_pos([coords[2],coords[3]])
+        to_move.selected = False
+        self.selected = None
