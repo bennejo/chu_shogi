@@ -165,7 +165,7 @@ class Bishop(Piece):
         dxL = x + 1
         dxR = x - 1
         for dy in range(y - 1, -1, -1):
-            if dxL < 8:
+            if dxL < 12:
                 p = board[dxL][dy]
                 if p == 0:
                     moves.append((dxL, dy))
@@ -197,8 +197,8 @@ class Bishop(Piece):
         # TOP LEFT
         dxL = x + 1
         dxR = x - 1
-        for dy in range(y + 1, 8):
-            if dxL < 8:
+        for dy in range(y + 1, 12):
+            if dxL < 12:
                 p = board[dxL][dy]
                 if p == 0:
                     moves.append((dxL, dy))
@@ -210,7 +210,7 @@ class Bishop(Piece):
             else:
                 break
             dxL += 1
-        for dy in range(y + 1, 8):
+        for dy in range(y + 1, 12):
             if dxR > -1:
                 p = board[dxR][dy]
                 if p == 0:
@@ -461,7 +461,7 @@ class DragonHorse(Piece):
         dxL = x + 1
         dxR = x - 1
         for dy in range(y - 1, -1, -1):
-            if dxL < 8:
+            if dxL < 12:
                 p = board[dxL][dy]
                 if p == 0:
                     moves.append((dxL, dy))
@@ -493,8 +493,8 @@ class DragonHorse(Piece):
         # TOP LEFT
         dxL = x + 1
         dxR = x - 1
-        for dy in range(y + 1, 8):
-            if dxL < 8:
+        for dy in range(y + 1, 12):
+            if dxL < 12:
                 p = board[dxL][dy]
                 if p == 0:
                     moves.append((dxL, dy))
@@ -506,7 +506,7 @@ class DragonHorse(Piece):
             else:
                 break
             dxL += 1
-        for dy in range(y + 1, 8):
+        for dy in range(y + 1, 12):
             if dxR > -1:
                 p = board[dxR][dy]
                 if p == 0:
@@ -658,7 +658,7 @@ class FreeKing(Piece):
         dxL = x + 1
         dxR = x - 1
         for dy in range(y - 1, -1, -1):
-            if dxL < 8:
+            if dxL < 12:
                 p = board[dxL][dy]
                 if p == 0:
                     moves.append((dxL, dy))
@@ -687,7 +687,7 @@ class FreeKing(Piece):
         dxL = x + 1
         dxR = x - 1
         for dy in range(y + 1, 12):
-            if dxL < 8:
+            if dxL < 12:
                 p = board[dxL][dy]
                 if p == 0:
                     moves.append((dxL, dy))
@@ -744,7 +744,7 @@ class FreeKing(Piece):
                 break
 
         # RIGHT
-        for dx in range(x + 1, 8, 1):
+        for dx in range(x + 1, 12, 1):
             p = board[dx][y]
             if p == 0:
                 moves.append((dx, y))
