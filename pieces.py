@@ -1133,6 +1133,8 @@ class Lion(Piece):
                 move_list.append(move)
             elif board[move[0]][move[1]].color != self.color:
                 move_list.append(move)
+            elif board[move[0]][move[1]] == self:
+                move_list.append(move)
         return move_list
 
     def lion_moves(self, board):
