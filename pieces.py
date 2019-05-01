@@ -57,48 +57,95 @@ for img in b_img_paths:
 
 for img in w_img_paths:
     w_imgs.append(pg.transform.scale(img, (82,82)))
+    
+X_OFFSET = 0
+Y_OFFSET = 0
+X_BOARD_SIZE = 1000
+Y_BOARD_SIZE = 1000
+LINE_THICKNESS = 4
+X_BOX_DELTA = X_BOARD_SIZE / 12
+Y_BOX_DELTA = Y_BOARD_SIZE / 12
+
+def draw_box(col, row, win, color=(255, 0, 0), color_bot=(0, 255, 0), option=False):
+
+    x1 = round(X_OFFSET + (col * X_BOX_DELTA)) + 4
+    y1 = round(Y_OFFSET + (row * Y_BOX_DELTA)) + 4
+    x2 = x1 + X_BOX_DELTA
+    y2 = y1 + Y_BOX_DELTA
+
+    if option:
+        pg.draw.polygon(win, color, [(x1, y1), (x1, y2), (x2, y1)], 4)
+        pg.draw.polygon(win, color_bot, [(x2, y2), (x2, y1), (x1, y2)], 4)
+    else:
+        pg.draw.rect(win, color, (x1, y1, X_BOX_DELTA, Y_BOX_DELTA), 4)
+
 
 
 class Piece:
     img = 100
-    rect = (0, 0, 1000, 1000)
-    startX = rect[0]
-    startY = rect[1]
 
-    def __init__(self, row, col, color):
-        self.row = row
+    def __init__(self, col, row, color):
         self.col = col
+        self.row = row
         self.color = color
         self.selected = False
         self.move_list = []
+        self.lion_move_list = []
+        self.lion_move_list_2 = []
         self.king = False
         self.lion = False
+        self.lion_2 = False
+        self.flying = False
+        self.soaring_eagle_direction = None
 
     def is_selected(self):
         return self.selected
 
     def update_valid_moves(self, board):
         self.move_list = self.valid_moves(board)
+        self.lion_move_list = self.lion_moves(board)
+        self.lion_move_list_2 = self.lion_moves_2(board)
 
     def draw(self, win):
+        # TODO: add flying handler
+
         if self.color == 'w':
             draw_img = w_imgs[self.img]
         else:
             draw_img = b_imgs[self.img]
 
-        # CHECK: Numbers will need fine tuning
-        x = (6 - self.col) + round(self.startX + (self.col * self.rect[2] / 12))
-        y = 5 + round(self.startY + (self.row * self.rect[3] / 12))
-
         # CHECK:  Numbers will need fine tuning
         if self.selected:
-            pg.draw.rect(win, (255, 0, 0), (x, y, 76, 76), 4)
+            draw_box(self.col, self.row, win)
+            for coords in self.move_list:
+                draw_box(coords[0], coords[1], win, color=(255,128,0))
+            if self.lion and not self.lion_2:
+                for coords in self.lion_move_list:
+                    draw_box(coords[0], coords[1], win, option=coords[2])
+            if self.lion_2:
+                for coords in self.lion_move_list_2:
+                    draw_box(coords[0], coords[1], win, color=(255, 128, 0))
 
-        win.blit(draw_img, (x, y))
+        x = round(X_OFFSET + (self.col * X_BOX_DELTA)) + 4
+        y = round(Y_OFFSET + (self.row * Y_BOX_DELTA)) + 4
+
+        if self.flying:
+            win.blit(draw_img, (x-10, y-10))
+        else:
+            win.blit(draw_img, (x, y))
 
     def change_pos(self, pos):
-        self.row = pos[0]
-        self.col = pos[1]
+        self.col = pos[0]
+        self.row = pos[1]
+
+    def valid_moves(self, board):
+        return []
+
+    def lion_moves(self, board):
+        return []
+
+    def lion_moves_2(self, board):
+        return []
 
     # TODO: Not sure I like this string convention
     def __str__(self):
@@ -109,74 +156,74 @@ class Bishop(Piece):
     img = 0
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        x = self.col
+        y = self.row
 
         moves = []
 
         # TOP RIGHT
-        djL = j + 1
-        djR = j - 1
-        for di in range(i - 1, -1, -1):
-            if djL < 8:
-                p = board[di][djL]
+        dxL = x + 1
+        dxR = x - 1
+        for dy in range(y - 1, -1, -1):
+            if dxL < 8:
+                p = board[dxL][dy]
                 if p == 0:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                 elif p.color != self.color:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                     break
                 else:
                     break
             else:
                 break
 
-            djL += 1
+            dxL += 1
 
-        for di in range(i - 1, -1, -1):
-            if djR > -1:
-                p = board[di][djR]
+        for dy in range(y - 1, -1, -1):
+            if dxR > -1:
+                p = board[dxR][dy]
                 if p == 0:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                 elif p.color != self.color:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                     break
                 else:
                     break
             else:
                 break
 
-            djR -= 1
+            dxR -= 1
 
         # TOP LEFT
-        djL = j + 1
-        djR = j - 1
-        for di in range(i + 1, 8):
-            if djL < 8:
-                p = board[di][djL]
+        dxL = x + 1
+        dxR = x - 1
+        for dy in range(y + 1, 8):
+            if dxL < 8:
+                p = board[dxL][dy]
                 if p == 0:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                 elif p.color != self.color:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                     break
                 else:
                     break
             else:
                 break
-            djL += 1
-        for di in range(i + 1, 8):
-            if djR > -1:
-                p = board[di][djR]
+            dxL += 1
+        for dy in range(y + 1, 8):
+            if dxR > -1:
+                p = board[dxR][dy]
                 if p == 0:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                 elif p.color != self.color:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                     break
                 else:
                     break
             else:
                 break
 
-            djR -= 1
+            dxR -= 1
 
         return moves
 
@@ -185,76 +232,76 @@ class BlindTiger(Piece):
     img = 1
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP LEFT
-            if j > 0:
-                p = board[i - 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y - 1]
                 if p == 0:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
 
             if self.color == "w":
                 # TOP MIDDLE
-                p = board[i - 1][j]
+                p = board[x][y - 1]
                 if p == 0:
-                    moves.append((j, i - 1))
+                    moves.append((x, y - 1))
                 elif p.color != self.color:
-                    moves.append((j, i - 1))
+                    moves.append((x, y - 1))
 
             # TOP RIGHT
-            if j < 11:
-                p = board[i - 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y - 1]
                 if p == 0:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM LEFT
-            if j > 0:
-                p = board[i + 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y + 1]
                 if p == 0:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
 
             if self.color == "b":
                 # BOTTOM MIDDLE
-                p = board[i + 1][j]
+                p = board[x][y + 1]
                 if p == 0:
-                    moves.append((j, i + 1))
+                    moves.append((x, y + 1))
                 elif p.color != self.color:
-                    moves.append((j, i + 1))
+                    moves.append((x, y + 1))
 
             # BOTTOM RIGHT
-            if j < 11:
-                p = board[i + 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y + 1]
                 if p == 0:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
                 elif p.color != self.color:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
+        if x > 0:
+            p = board[x - 1][y]
             if p == 0:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
+        if x < 11:
+            p = board[x + 1][y]
             if p == 0:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
 
         return moves
 
@@ -263,62 +310,62 @@ class CopperGeneral(Piece):
     img = 2
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             if self.color == "b":
                 # TOP LEFT
-                if j > 0:
-                    p = board[i - 1][j - 1]
+                if x > 0:
+                    p = board[x - 1][y - 1]
                     if p == 0:
-                        moves.append((j - 1, i - 1,))
+                        moves.append((x - 1, y - 1,))
                     elif p.color != self.color:
-                        moves.append((j - 1, i - 1,))
+                        moves.append((x - 1, y - 1,))
 
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
             if self.color == "b":
                 # TOP RIGHT
-                if j < 11:
-                    p = board[i - 1][j + 1]
+                if x < 11:
+                    p = board[x + 1][y - 1]
                     if p == 0:
-                        moves.append((j + 1, i - 1,))
+                        moves.append((x + 1, y - 1,))
                     elif p.color != self.color:
-                        moves.append((j + 1, i - 1,))
+                        moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             if self.color == "w":
                 # BOTTOM LEFT
-                if j > 0:
-                    p = board[i + 1][j - 1]
+                if x > 0:
+                    p = board[x - 1][y + 1]
                     if p == 0:
-                        moves.append((j - 1, i + 1,))
+                        moves.append((x - 1, y + 1,))
                     elif p.color != self.color:
-                        moves.append((j - 1, i + 1,))
+                        moves.append((x - 1, y + 1,))
 
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
             if self.color == "w":
                 # BOTTOM RIGHT
-                if j < 11:
-                    p = board[i + 1][j + 1]
+                if x < 11:
+                    p = board[x + 1][y + 1]
                     if p == 0:
-                        moves.append((j + 1, i + 1))
+                        moves.append((x + 1, y + 1))
                     elif p.color != self.color:
-                        moves.append((j + 1, i + 1))
+                        moves.append((x + 1, y + 1))
 
         return moves
 
@@ -327,76 +374,76 @@ class DrunkElephant(Piece):
     img = 3
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP LEFT
-            if j > 0:
-                p = board[i - 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y - 1]
                 if p == 0:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
 
             if self.color == "b":
                 # TOP MIDDLE
-                p = board[i - 1][j]
+                p = board[x][y - 1]
                 if p == 0:
-                    moves.append((j, i - 1))
+                    moves.append((x, y - 1))
                 elif p.color != self.color:
-                    moves.append((j, i - 1))
+                    moves.append((x, y - 1))
 
             # TOP RIGHT
-            if j < 11:
-                p = board[i - 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y - 1]
                 if p == 0:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM LEFT
-            if j > 0:
-                p = board[i + 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y + 1]
                 if p == 0:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
 
             if self.color == "w":
                 # BOTTOM MIDDLE
-                p = board[i + 1][j]
+                p = board[x][y + 1]
                 if p == 0:
-                    moves.append((j, i + 1))
+                    moves.append((x, y + 1))
                 elif p.color != self.color:
-                    moves.append((j, i + 1))
+                    moves.append((x, y + 1))
 
             # BOTTOM RIGHT
-            if j < 11:
-                p = board[i + 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y + 1]
                 if p == 0:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
                 elif p.color != self.color:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
+        if x > 0:
+            p = board[x - 1][y]
             if p == 0:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
+        if x < 11:
+            p = board[x + 1][y]
             if p == 0:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
 
         return moves
 
@@ -405,106 +452,106 @@ class DragonHorse(Piece):
     img = 4
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
         # TOP RIGHT
-        djL = j + 1
-        djR = j - 1
-        for di in range(i - 1, -1, -1):
-            if djL < 8:
-                p = board[di][djL]
+        dxL = x + 1
+        dxR = x - 1
+        for dy in range(y - 1, -1, -1):
+            if dxL < 8:
+                p = board[dxL][dy]
                 if p == 0:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                 elif p.color != self.color:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                     break
                 else:
                     break
             else:
                 break
 
-            djL += 1
+            dxL += 1
 
-        for di in range(i - 1, -1, -1):
-            if djR > -1:
-                p = board[di][djR]
+        for dy in range(y - 1, -1, -1):
+            if dxR > -1:
+                p = board[dxR][dy]
                 if p == 0:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                 elif p.color != self.color:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                     break
                 else:
                     break
             else:
                 break
 
-            djR -= 1
+            dxR -= 1
 
         # TOP LEFT
-        djL = j + 1
-        djR = j - 1
-        for di in range(i + 1, 8):
-            if djL < 8:
-                p = board[di][djL]
+        dxL = x + 1
+        dxR = x - 1
+        for dy in range(y + 1, 8):
+            if dxL < 8:
+                p = board[dxL][dy]
                 if p == 0:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                 elif p.color != self.color:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                     break
                 else:
                     break
             else:
                 break
-            djL += 1
-        for di in range(i + 1, 8):
-            if djR > -1:
-                p = board[di][djR]
+            dxL += 1
+        for dy in range(y + 1, 8):
+            if dxR > -1:
+                p = board[dxR][dy]
                 if p == 0:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                 elif p.color != self.color:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                     break
                 else:
                     break
             else:
                 break
 
-            djR -= 1
+            dxR -= 1
 
-        if i > 0:
+        if y > 0:
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
+        if x > 0:
+            p = board[x - 1][y]
             if p == 0:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
+        if x < 11:
+            p = board[x + 1][y]
             if p == 0:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
         return moves
 
 # TODO: Define promotion to Soaring Eagle
@@ -512,88 +559,88 @@ class DragonKing(Piece):
     img = 5
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
         # UP RANGE
-        for x in range(i - 1, -1, -1):
-            p = board[x][j]
+        for dy in range(y - 1, -1, -1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # DOWN RANGE
-        for x in range(i + 1, 12, 1):
-            p = board[x][j]
+        for dy in range(y + 1, 12, 1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # LEFT RANGE
-        for x in range(j - 1, -1, -1):
-            p = board[i][x]
+        for dx in range(x - 1, -1, -1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
 
         # RIGHT RANGE
-        for x in range(j + 1, 12, 1):
-            p = board[i][x]
+        for dx in range(x + 1, 12, 1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
 
-        if i > 0:
+        if y > 0:
             # TOP LEFT
-            if j > 0:
-                p = board[i - 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y - 1]
                 if p == 0:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
 
             # TOP RIGHT
-            if j < 11:
-                p = board[i - 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y - 1]
                 if p == 0:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM LEFT
-            if j > 0:
-                p = board[i + 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y + 1]
                 if p == 0:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
 
             # BOTTOM RIGHT
-            if j < 11:
-                p = board[i + 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y + 1]
                 if p == 0:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
                 elif p.color != self.color:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
 
         return moves
 
@@ -602,107 +649,107 @@ class FreeKing(Piece):
     img = 6
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
         # TOP RIGHT
-        djL = j + 1
-        djR = j - 1
-        for di in range(i - 1, -1, -1):
-            if djL < 8:
-                p = board[di][djL]
+        dxL = x + 1
+        dxR = x - 1
+        for dy in range(y - 1, -1, -1):
+            if dxL < 8:
+                p = board[dxL][dy]
                 if p == 0:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                 elif p.color != self.color:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                     break
                 else:
-                    djL = 9
+                    dxL = 9
 
-            djL += 1
+            dxL += 1
 
-        for di in range(i - 1, -1, -1):
-            if djR > -1:
-                p = board[di][djR]
+        for dy in range(y - 1, -1, -1):
+            if dxR > -1:
+                p = board[dxR][dy]
                 if p == 0:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                 elif p.color != self.color:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                     break
                 else:
-                    djR = -1
+                    dxR = -1
 
-            djR -= 1
+            dxR -= 1
 
         # TOP LEFT
-        djL = j + 1
-        djR = j - 1
-        for di in range(i + 1, 8):
-            if djL < 8:
-                p = board[di][djL]
+        dxL = x + 1
+        dxR = x - 1
+        for dy in range(y + 1, 12):
+            if dxL < 8:
+                p = board[dxL][dy]
                 if p == 0:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                 elif p.color != self.color:
-                    moves.append((djL, di))
+                    moves.append((dxL, dy))
                     break
                 else:
-                    djL = 9
-            djL += 1
-        for di in range(i + 1, 8):
-            if djR > -1:
-                p = board[di][djR]
+                    dxL = 9
+            dxL += 1
+        for dy in range(y + 1, 12):
+            if dxR > -1:
+                p = board[dxR][dy]
                 if p == 0:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                 elif p.color != self.color:
-                    moves.append((djR, di))
+                    moves.append((dxR, dy))
                     break
                 else:
-                    djR = -1
+                    dxR = -1
 
-            djR -= 1
+            dxR -= 1
 
         # UP
-        for x in range(i - 1, -1, -1):
-            p = board[x][j]
+        for dy in range(y - 1, -1, -1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # DOWN
-        for x in range(i + 1, 8, 1):
-            p = board[x][j]
+        for dy in range(y + 1, 12, 1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # LEFT
-        for x in range(j - 1, -1, -1):
-            p = board[i][x]
+        for dx in range(x - 1, -1, -1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
 
         # RIGHT
-        for x in range(j + 1, 8, 1):
-            p = board[i][x]
+        for dx in range(x + 1, 8, 1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
@@ -714,58 +761,58 @@ class FerociousLeopard(Piece):
     img = 7
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP LEFT
-            if j > 0:
-                p = board[i - 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y - 1]
                 if p == 0:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
 
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
             # TOP RIGHT
-            if j < 11:
-                p = board[i - 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y - 1]
                 if p == 0:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM LEFT
-            if j > 0:
-                p = board[i + 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y + 1]
                 if p == 0:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
 
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
             # BOTTOM RIGHT
-            if j < 11:
-                p = board[i + 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y + 1]
                 if p == 0:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
                 elif p.color != self.color:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
 
         return moves
 
@@ -774,78 +821,78 @@ class GoldGeneral(Piece):
     img = 8
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             if self.color == "b":
                 # TOP LEFT
-                if j > 0:
-                    p = board[i - 1][j - 1]
+                if x > 0:
+                    p = board[x - 1][y - 1]
                     if p == 0:
-                        moves.append((j - 1, i - 1,))
+                        moves.append((x - 1, y - 1,))
                     elif p.color != self.color:
-                        moves.append((j - 1, i - 1,))
+                        moves.append((x - 1, y - 1,))
 
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
             if self.color == "b":
                 # TOP RIGHT
-                if j < 11:
-                    p = board[i - 1][j + 1]
+                if x < 11:
+                    p = board[x + 1][y - 1]
                     if p == 0:
-                        moves.append((j + 1, i - 1,))
+                        moves.append((x + 1, y - 1,))
                     elif p.color != self.color:
-                        moves.append((j + 1, i - 1,))
+                        moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             if self.color == "w":
                 # BOTTOM LEFT
-                if j > 0:
-                    p = board[i + 1][j - 1]
+                if x > 0:
+                    p = board[x - 1][y + 1]
                     if p == 0:
-                        moves.append((j - 1, i + 1,))
+                        moves.append((x - 1, y + 1,))
                     elif p.color != self.color:
-                        moves.append((j - 1, i + 1,))
+                        moves.append((x - 1, y + 1,))
 
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
             if self.color == "w":
                 # BOTTOM RIGHT
-                if j < 11:
-                    p = board[i + 1][j + 1]
+                if x < 11:
+                    p = board[x + 1][y + 1]
                     if p == 0:
-                        moves.append((j + 1, i + 1))
+                        moves.append((x + 1, y + 1))
                     elif p.color != self.color:
-                        moves.append((j + 1, i + 1))
+                        moves.append((x + 1, y + 1))
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
+        if x > 0:
+            p = board[x - 1][y]
             if p == 0:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
+        if x < 11:
+            p = board[x + 1][y]
             if p == 0:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
 
         return moves
 
@@ -854,27 +901,27 @@ class GoBetween(Piece):
     img = 9
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
-        if i < 11:
+        if y < 11:
 
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
         return moves
 
@@ -887,74 +934,74 @@ class King(Piece):
         self.king = True
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP LEFT
-            if j > 0:
-                p = board[i - 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y - 1]
                 if p == 0:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
 
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
             # TOP RIGHT
-            if j < 11:
-                p = board[i - 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y - 1]
                 if p == 0:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM LEFT
-            if j > 0:
-                p = board[i + 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y + 1]
                 if p == 0:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
 
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
             # BOTTOM RIGHT
-            if j < 11:
-                p = board[i + 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y + 1]
                 if p == 0:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
                 elif p.color != self.color:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
+        if x > 0:
+            p = board[x - 1][y]
             if p == 0:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
+        if x < 11:
+            p = board[x + 1][y]
             if p == 0:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
 
         return moves
 
@@ -963,75 +1010,75 @@ class Kylin(Piece):
     img = 11
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP LEFT
-            if j > 0:
-                p = board[i - 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y - 1]
                 if p == 0:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1,))
 
             # TOP RIGHT
-            if j < 11:
-                p = board[i - 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y - 1]
                 if p == 0:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1,))
                 elif p.color != self.color:
-                    moves.append((j + 1, i - 1,))
-        if i > 1:
+                    moves.append((x + 1, y - 1,))
+        if y > 1:
             # TOP JUMP MIDDLE
-            p = board[i - 2][j]
+            p = board[x][y - 2]
             if p == 0:
-                moves.append((j, i - 2))
+                moves.append((x, y - 2))
             elif p.color != self.color:
-                moves.append((j, i - 2))
+                moves.append((x, y - 2))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM LEFT
-            if j > 0:
-                p = board[i + 1][j - 1]
+            if x > 0:
+                p = board[x - 1][y + 1]
                 if p == 0:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
                 elif p.color != self.color:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1,))
 
             # BOTTOM RIGHT
-            if j < 11:
-                p = board[i + 1][j + 1]
+            if x < 11:
+                p = board[x + 1][y + 1]
                 if p == 0:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
                 elif p.color != self.color:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1))
 
-        if i < 10:
+        if y < 10:
             # BOTTOM JUMP MIDDLE
-            p = board[i + 2][j]
+            p = board[x][y + 2]
             if p == 0:
-                moves.append((j, i + 2))
+                moves.append((x, y + 2))
             elif p.color != self.color:
-                moves.append((j, i + 2))
+                moves.append((x, y + 2))
 
         # MIDDLE LEFT
-        if j > 1:
-            p = board[i][j - 2]
+        if x > 1:
+            p = board[x - 2][y]
             if p == 0:
-                moves.append((j - 2, i))
+                moves.append((x - 2, y))
             elif p.color != self.color:
-                moves.append((j - 2, i))
+                moves.append((x - 2, y))
 
         # MIDDLE RIGHT
-        if j < 10:
-            p = board[i][j + 2]
+        if x < 10:
+            p = board[x + 2][y]
             if p == 0:
-                moves.append((j + 2, i))
+                moves.append((x + 2, y))
             elif p.color != self.color:
-                moves.append((j + 2, i))
+                moves.append((x + 2, y))
 
         return moves
 
@@ -1040,30 +1087,30 @@ class Lance(Piece):
     img = 12
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
         moves = []
 
         # White is ranged down
         if self.color == "w":
-            for x in range(i + 1, 12, 1):
-                p = board[x][j]
+            for dy in range(y + 1, 12, 1):
+                p = board[x][dy]
                 if p == 0:
-                    moves.append((j, x))
+                    moves.append((x, dy))
                 elif p.color != self.color:
-                    moves.append((j, x))
+                    moves.append((x, dy))
                     break
                 else:
                     break
 
         # Black is ranged up
         else:
-            for x in range(i - 1, -1, -1):
-                p = board[x][j]
+            for dy in range(y - 1, -1, -1):
+                p = board[x][dy]
                 if p == 0:
-                    moves.append((j, x))
+                    moves.append((x, dy))
                 elif p.color != self.color:
-                    moves.append((j, x))
+                    moves.append((x, dy))
                     break
                 else:
                     break
@@ -1079,75 +1126,85 @@ class Lion(Piece):
     img = 13
 
     # TODO: These are the valid moves for a king. We need to adjust them to Lion moves
-    def valid_moves(self, board):
-        i = self.row
-        j = self.col
+    def lion_moves_2(self, board):
+        move_list = []
+        for move in self.lion_moves(board):
+            if board[move[0]][move[1]] == 0:
+                move_list.append(move)
+            elif board[move[0]][move[1]].color != self.color:
+                move_list.append(move)
+        return move_list
+
+    def lion_moves(self, board):
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP LEFT
-            if j > 0:
-                p = board[i - 1][j - 1]
-                if p == 0:
-                    moves.append((j - 1, i - 1,))
+            if x > 0:
+                p = board[x - 1][y - 1]
+                if p == 0 or p.color == self.color:
+                    moves.append((x - 1, y - 1, False))
                 elif p.color != self.color:
-                    moves.append((j - 1, i - 1,))
+                    moves.append((x - 1, y - 1, True))
+
 
             # TOP MIDDLE
-            p = board[i - 1][j]
-            if p == 0:
-                moves.append((j, i - 1))
+            p = board[x][y - 1]
+            if p == 0 or p.color == self.color:
+                moves.append((x, y - 1, False))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1, True))
 
             # TOP RIGHT
-            if j < 11:
-                p = board[i - 1][j + 1]
-                if p == 0:
-                    moves.append((j + 1, i - 1,))
+            if x < 11:
+                p = board[x + 1][y -  1]
+                if p == 0 or p.color == self.color:
+                    moves.append((x + 1, y - 1, False))
                 elif p.color != self.color:
-                    moves.append((j + 1, i - 1,))
+                    moves.append((x + 1, y - 1, True))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM LEFT
-            if j > 0:
-                p = board[i + 1][j - 1]
-                if p == 0:
-                    moves.append((j - 1, i + 1,))
+            if x > 0:
+                p = board[x - 1][y + 1]
+                if p == 0 or p.color == self.color:
+                    moves.append((x - 1, y + 1, False))
                 elif p.color != self.color:
-                    moves.append((j - 1, i + 1,))
+                    moves.append((x - 1, y + 1, True))
 
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
-            if p == 0:
-                moves.append((j, i + 1))
+            p = board[x][y + 1]
+            if p == 0 or p.color == self.color:
+                moves.append((x, y + 1, False))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1, True))
 
             # BOTTOM RIGHT
-            if j < 11:
-                p = board[i + 1][j + 1]
-                if p == 0:
-                    moves.append((j + 1, i + 1))
+            if x < 11:
+                p = board[x + 1][y + 1]
+                if p == 0 or p.color == self.color:
+                    moves.append((x + 1, y + 1, False))
                 elif p.color != self.color:
-                    moves.append((j + 1, i + 1))
+                    moves.append((x + 1, y + 1, True))
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
-            if p == 0:
-                moves.append((j - 1, i))
+        if x > 0:
+            p = board[x - 1][y]
+            if p == 0 or p.color == self.color:
+                moves.append((x - 1, y, False))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y, True))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
-            if p == 0:
-                moves.append((j + 1, i))
+        if x < 11:
+            p = board[x + 1][y]
+            if p == 0 or p.color == self.color:
+                moves.append((x + 1, y, False))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y, True))
 
         return moves
 
@@ -1156,35 +1213,35 @@ class Pawn(Piece):
     img = 14
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
         moves = []
         try:
             if self.color == "w":
-                if i < 11:
-                    p = board[i + 1][j]
+                if y < 11:
+                    p = board[x][y + 1]
                     if p == 0:
-                        moves.append((j, i + 1))
+                        moves.append((x, y + 1))
 
-                    if j > 0:
-                        p = board[i + 1][j - 1]
+                    if x > 0:
+                        p = board[x - 1][y + 1]
                         if p != 0:
                             if p.color != self.color:
-                                moves.append((j - 1, i + 1))
+                                moves.append((x - 1, y + 1))
 
             # BLACK
             else:
 
-                if i > 0:
-                    p = board[i - 1][j]
+                if y > 0:
+                    p = board[x][y - 1]
                     if p == 0:
-                        moves.append((j, i - 1))
+                        moves.append((x, y - 1))
 
-                if j > 0:
-                    p = board[i - 1][j - 1]
+                if x > 0:
+                    p = board[x - 1][y - 1]
                     if p != 0:
                         if p.color != self.color:
-                            moves.append((j - 1, i - 1))
+                            moves.append((x - 1, y - 1))
 
         except:
             exit(1)
@@ -1196,76 +1253,76 @@ class Phoenix(Piece):
     img = 15
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
-        if i > 1:
+        if y > 1:
             # TOP JUMP LEFT
-            if j > 1:
-                p = board[i - 2][j - 2]
+            if x > 1:
+                p = board[x - 2][y - 2]
                 if p == 0:
-                    moves.append((j - 2, i - 2,))
+                    moves.append((x - 2, y - 2,))
                 elif p.color != self.color:
-                    moves.append((j - 2, i - 2,))
+                    moves.append((x - 2, y - 2,))
 
             # TOP JUMP RIGHT
-            if j < 10:
-                p = board[i - 2][j + 2]
+            if x < 10:
+                p = board[x + 2][y - 2]
                 if p == 0:
-                    moves.append((j + 2, i - 2,))
+                    moves.append((x + 2, y - 2,))
                 elif p.color != self.color:
-                    moves.append((j + 2, i - 2,))
+                    moves.append((x + 2, y - 2,))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
-        if i < 10:
+        if y < 10:
             # BOTTOM JUMP LEFT
-            if j > 1:
-                p = board[i + 2][j - 2]
+            if x > 1:
+                p = board[x - 2][y + 2]
                 if p == 0:
-                    moves.append((j - 2, i + 2,))
+                    moves.append((x - 2, y + 2,))
                 elif p.color != self.color:
-                    moves.append((j - 2, i + 2,))
+                    moves.append((x - 2, y + 2,))
 
             # BOTTOM JUMP RIGHT
-            if j < 10:
-                p = board[i + 2][j + 2]
+            if x < 10:
+                p = board[x + 2][y + 2]
                 if p == 0:
-                    moves.append((j + 2, i + 2))
+                    moves.append((x + 2, y + 2))
                 elif p.color != self.color:
-                    moves.append((j + 2, i + 2))
+                    moves.append((x + 2, y + 2))
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
+        if x > 0:
+            p = board[x - 1][y]
             if p == 0:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
+        if x < 11:
+            p = board[x + 1][y]
             if p == 0:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
 
         return moves
 
@@ -1274,51 +1331,51 @@ class Rook(Piece):
     img = 16
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
         # UP RANGE
-        for x in range(i - 1, -1, -1):
-            p = board[x][j]
+        for dy in range(y - 1, -1, -1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # DOWN RANGE
-        for x in range(i + 1, 12, 1):
-            p = board[x][j]
+        for dy in range(y + 1, 12, 1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # LEFT RANGE
-        for x in range(j - 1, -1, -1):
-            p = board[i][x]
+        for dx in range(x - 1, -1, -1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
 
         # RIGHT RANGE
-        for x in range(j + 1, 12, 1):
-            p = board[i][x]
+        for dx in range(x + 1, 12, 1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
@@ -1330,29 +1387,29 @@ class ReverseChariot(Piece):
     img = 17
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
         # UP RANGE
-        for x in range(i - 1, -1, -1):
-            p = board[x][j]
+        for dy in range(y - 1, -1, -1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # DOWN RANGE
-        for x in range(i + 1, 12, 1):
-            p = board[x][j]
+        for dy in range(y + 1, 12, 1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
@@ -1364,62 +1421,62 @@ class SilverGeneral(Piece):
     img = 18
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             if self.color == "b":
                 # TOP LEFT
-                if j > 0:
-                    p = board[i - 1][j - 1]
+                if x > 0:
+                    p = board[x - 1][y - 1]
                     if p == 0:
-                        moves.append((j - 1, i - 1,))
+                        moves.append((x - 1, y - 1,))
                     elif p.color != self.color:
-                        moves.append((j - 1, i - 1,))
+                        moves.append((x - 1, y - 1,))
 
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
             if self.color == "b":
                 # TOP RIGHT
-                if j < 11:
-                    p = board[i - 1][j + 1]
+                if x < 11:
+                    p = board[x + 1][y - 1]
                     if p == 0:
-                        moves.append((j + 1, i - 1,))
+                        moves.append((x + 1, y - 1,))
                     elif p.color != self.color:
-                        moves.append((j + 1, i - 1,))
+                        moves.append((x + 1, y - 1,))
 
-        if i < 11:
+        if y < 11:
             if self.color == "w":
                 # BOTTOM LEFT
-                if j > 0:
-                    p = board[i + 1][j - 1]
+                if x > 0:
+                    p = board[x - 1][y + 1]
                     if p == 0:
-                        moves.append((j - 1, i + 1,))
+                        moves.append((x - 1, y + 1,))
                     elif p.color != self.color:
-                        moves.append((j - 1, i + 1,))
+                        moves.append((x - 1, y + 1,))
 
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
             if self.color == "w":
                 # BOTTOM RIGHT
-                if j < 11:
-                    p = board[i + 1][j + 1]
+                if x < 11:
+                    p = board[x + 1][y + 1]
                     if p == 0:
-                        moves.append((j + 1, i + 1))
+                        moves.append((x + 1, y + 1))
                     elif p.color != self.color:
-                        moves.append((j + 1, i + 1))
+                        moves.append((x + 1, y + 1))
 
         return moves
 
@@ -1428,45 +1485,45 @@ class SideMover(Piece):
     img = 19
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
-        if i > 0:
+        if y > 0:
             # TOP MIDDLE
-            p = board[i - 1][j]
+            p = board[x][y - 1]
             if p == 0:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
             elif p.color != self.color:
-                moves.append((j, i - 1))
+                moves.append((x, y - 1))
 
-        if i < 11:
+        if y < 11:
             # BOTTOM MIDDLE
-            p = board[i + 1][j]
+            p = board[x][y + 1]
             if p == 0:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
             elif p.color != self.color:
-                moves.append((j, i + 1))
+                moves.append((x, y + 1))
 
         # LEFT RANGE
-        for x in range(j - 1, -1, -1):
-            p = board[i][x]
+        for dx in range(x - 1, -1, -1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
 
         # RIGHT RANGE
-        for x in range(j + 1, 12, 1):
-            p = board[i][x]
+        for dx in range(x + 1, 12, 1):
+            p = board[dx][y]
             if p == 0:
-                moves.append((x, i))
+                moves.append((dx, y))
             elif p.color != self.color:
-                moves.append((x, i))
+                moves.append((dx, y))
                 break
             else:
                 break
@@ -1478,48 +1535,48 @@ class VerticalMover(Piece):
     img = 20
 
     def valid_moves(self, board):
-        i = self.row
-        j = self.col
+        y = self.row
+        x = self.col
 
         moves = []
 
         # UP RANGE
-        for x in range(i - 1, -1, -1):
-            p = board[x][j]
+        for dy in range(y - 1, -1, -1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # DOWN RANGE
-        for x in range(i + 1, 12, 1):
-            p = board[x][j]
+        for dy in range(y + 1, 12, 1):
+            p = board[x][dy]
             if p == 0:
-                moves.append((j, x))
+                moves.append((x, dy))
             elif p.color != self.color:
-                moves.append((j, x))
+                moves.append((x, dy))
                 break
             else:
                 break
 
         # MIDDLE LEFT
-        if j > 0:
-            p = board[i][j - 1]
+        if x > 0:
+            p = board[x - 1][y]
             if p == 0:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
             elif p.color != self.color:
-                moves.append((j - 1, i))
+                moves.append((x - 1, y))
 
         # MIDDLE RIGHT
-        if j < 11:
-            p = board[i][j + 1]
+        if x < 11:
+            p = board[x + 1][y]
             if p == 0:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
             elif p.color != self.color:
-                moves.append((j + 1, i))
+                moves.append((x + 1, y))
         return moves
 
 # TODO: Define valid moves
