@@ -16,6 +16,7 @@ rect = (0,0,1000,1000)
 clock = pg.time.Clock()
 
 bo = Board()
+bo.update_moves()
 
 
 def redraw_gameWindow(win):
@@ -38,7 +39,6 @@ def main():
 
     username, login_result = splash_login(win, clock)
 
-
     if login_result[0:5] == b'ERROR':
         # TODO: display error message and wait some few seconds
         print(login_result)
@@ -59,14 +59,17 @@ def main():
     while not quit_game:
 
         redraw_gameWindow(win)
+        bo.update_moves()
 
         if phase == 'wait':
             clock.tick(200)
             result = get_move(username)
+
             if result:
+                print("DEBUG: got move (" + result.decode('utf-8') + ") from server, phase is select")
                 bo.do_move(result.decode('utf-8'))
                 phase = 'select'
-                print("DEBUG: got move from server, phase is select")
+
 
                 redraw_gameWindow(win)
 
@@ -77,11 +80,15 @@ def main():
                 pg.quit()
 
             if event.type == pg.MOUSEBUTTONUP:
+                pos = pg.mouse.get_pos()
+                if bo.selected:
+                    selected_pos = (bo.selected.col, bo.selected.row)
+
                 if phase == 'select':
-                    pos = pg.mouse.get_pos()
-                    i, j = click(pos)
-                    result = bo.select(i, j)
+                    x, y, top = click(pos)
+                    result = bo.select(x, y)
                     if result == 'lion':
+                        print('DEBUG: setting phase to lion')
                         phase = 'lion'
                     elif result == 'selected':
                         phase = 'move'
@@ -89,15 +96,12 @@ def main():
                     redraw_gameWindow(win)
 
                 elif phase == 'move':
-
-                    pos = pg.mouse.get_pos()
-                    i, j = click(pos)
-
-                    result = bo.move(i, j)
+                    x, y, top = click(pos)
+                    result = bo.move(x, y)
                     if result == 'no selection' or result == 'deselected':
                         phase = 'select'
                     elif result == 'valid move':
-                        send_string = move_string(bo.selected, [i, j])
+                        send_string = move_string(selected_pos, [x, y])
                         send_result = send_move(username, send_string)
                         if send_result:
                             phase = 'wait'
@@ -110,6 +114,65 @@ def main():
                             pg.quit()
 
                     redraw_gameWindow(win)
+
+                elif phase == 'lion':
+                    x, y, fly = click(pos)
+                    result = bo.lion_move_1(x, y, fly)
+                    print("lion_move_1 returned: " + result)
+                    if result == 'no selection' or result == 'deselected':
+                        phase = 'select'
+                    elif result == 'regular move': # for +DH and +DK
+                        send_string = move_string(selected_pos, [x, y])
+                        send_result = send_move(username, send_string)
+                        if send_result:
+                            phase = 'wait'
+                            bo.do_move(send_string)
+                        else:
+                            # TODO: handle this a bit more gracefully
+                            print('ERROR: Server error sending move.')
+                            quit_game = True
+                            quit()
+                            pg.quit()
+                    elif result == 'lion move':
+                        send_string = move_string(selected_pos, [x, y], fly=False)
+                        # update location of lion
+                        bo.selected.change_pos([x, y])
+                        bo.selected.lion_2 = True
+                        phase = 'lion2'
+                    elif result == 'lion flies':
+                        send_string = move_string(selected_pos, [x, y], fly=True)
+                        bo.selected.change_pos([x, y])
+                        bo.selected.flying = True
+                        bo.selected.lion_2 = True
+                        phase = 'lion2'
+                    redraw_gameWindow(win)
+
+                elif phase == 'lion2':
+
+                    x, y, top = click(pos)
+                    result = bo.lion_move_2(x, y)
+                    print("in lion2 phase click handler result is: " + result)
+                    if result == 'no selection':
+                        raise ValueError('Lion type piece should be selected')
+                    elif result == 'valid move':
+
+                        send_string += ", " + move_string(selected_pos, [x, y], land=True)
+                        bo.selected.flying = False
+                        bo.selected.lion_2 = False
+                        send_result = send_move(username, send_string)
+
+                        if send_result:
+                            phase = 'wait'
+                            bo.do_move(send_string)
+                        else:
+                            # TODO: handle this a bit more gracefully
+                            print('ERROR: Server error sending move.')
+                            quit_game = True
+                            quit()
+                            pg.quit()
+                    redraw_gameWindow(win)
+
+
 
             pg.display.update()
             clock.tick(60)
